@@ -44,20 +44,27 @@ const logs = [
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
-  color: #333;
+  color: #e0e0e0;            /* 文字を明るいグレーに */
+  background-color: #121212; /* 背景を深い黒に */
+  min-height: 100vh;         /* 画面の底まで背景色を広げる */
 }
 header {
   border-bottom: 2px solid #42b883; /* 下線の色 */
   margin-bottom: 20px;
 }
+h1 {
+  color: #42b883; /* 見出しの色 */
+}
+
 h2 {
   color: #42b883; /* 見出しの色 */
 }
 .log-item {
   margin-bottom: 15px;
   padding: 10px;
-  background: #f9f9f9; /* ログの背景色（薄いグレー） */
-  border-radius: 8px; /* 角を少し丸くする */
+  background: #1e1e1e;       /* ログの背景を少しだけ明るい黒に */
+  border: 1px solid #333;    /* 薄い枠線を入れて立体感を出す */
+  border-radius: 8px;
 }
 .log-date {
   font-size: 0.8rem;
