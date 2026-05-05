@@ -1,77 +1,87 @@
 <script setup>
-// 【ロジック部】変数やデータを準備する場所
-const name = "27歳 ITエンジニア"
+import { ref, computed } from 'vue'
 
-// 学習ログのデータを「配列」として定義
-// 1行に1件のデータ（ID、日付、内容）をまとめていて、管理しやすい形です
-const logs = [
-  { id: 1, date: "2026-04-22", content: "Node.jsをv24に更新し、Viteプロジェクトを立ち上げ" },
-  { id: 2, date: "2026-04-21", content: "WSL2とGitの連携設定、GitHubへの初コミット" },
-  { id: 3, date: "2026-04-20", content: "SRE/Cloudエンジニアに向けた学習ロードマップを作成" }
-]
+const newTodo = ref('')
+const todos = ref([
+  { id: 1, text: 'Vue 3の学習を進める', completed: true },
+  { id: 2, text: 'モダンで美しいTODOアプリを作る', completed: false },
+  { id: 3, text: 'CSSのアニメーションをマスターする', completed: false }
+])
+
+const filter = ref('all') // 'all', 'active', 'completed'
+
+const filteredTodos = computed(() => {
+  if (filter.value === 'active') {
+    return todos.value.filter(todo => !todo.completed)
+  } else if (filter.value === 'completed') {
+    return todos.value.filter(todo => todo.completed)
+  }
+  return todos.value
+})
+
+const addTodo = () => {
+  if (newTodo.value.trim() !== '') {
+    todos.value.unshift({
+      id: Date.now(),
+      text: newTodo.value,
+      completed: false
+    })
+    newTodo.value = ''
+  }
+}
+
+const toggleTodo = (todo) => {
+  todo.completed = !todo.completed
+}
+
+const deleteTodo = (id) => {
+  todos.value = todos.value.filter(todo => todo.id !== id)
+}
 </script>
 
 <template>
-  <div class="portfolio">
-    <header>
-      <h1>{{ name }} のポートフォリオ</h1>
-    </header>
+  <div class="todo-app">
+    <div class="glass-panel">
+      <header>
+        <h1>Task Master</h1>
+        <p class="subtitle">美しく、効率的にタスクを管理</p>
+      </header>
 
-    <main>
-      <section class="profile">
-        <h2>Profile</h2>
-        <p>介護士からエンジニアへ。一人前のエンジニアを目指して学習中</p>
-      </section>
+      <div class="input-group">
+        <input 
+          v-model="newTodo" 
+          @keyup.enter="addTodo"
+          type="text" 
+          placeholder="新しいタスクを追加..." 
+          class="todo-input"
+        />
+        <button @click="addTodo" class="add-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+      </div>
 
-      <section class="timeline">
-        <h2>Learning Log</h2>
-        <!-- v-forを使って「logs」配列のデータを1つずつ「log」として取り出し、繰り返し表示する -->
-        <!-- :key="log.id" は、Vueが各項目を識別するための背番号（一意のキー） -->
-        <div v-for="log in logs" :key="log.id" class="log-item">
-          <!-- {{ }} を使うと、JavaScriptの変数をHTMLに表示できる -->
-          <span class="log-date">{{ log.date }}</span> <!-- 日付を表示 -->
-          <p class="log-text">{{ log.content }}</p> <!-- 内容を表示 -->
-        </div>
-      </section>
-    </main>
+      <div class="filters">
+        <button :class="{ active: filter === 'all' }" @click="filter = 'all'">すべて</button>
+        <button :class="{ active: filter === 'active' }" @click="filter = 'active'">進行中</button>
+        <button :class="{ active: filter === 'completed' }" @click="filter = 'completed'">完了</button>
+      </div>
+
+      <TransitionGroup name="list" tag="ul" class="todo-list">
+        <li v-for="todo in filteredTodos" :key="todo.id" class="todo-item" :class="{ completed: todo.completed }">
+          <label class="checkbox-container">
+            <input type="checkbox" :checked="todo.completed" @change="toggleTodo(todo)">
+            <span class="checkmark"></span>
+          </label>
+          <span class="todo-text">{{ todo.text }}</span>
+          <button @click="deleteTodo(todo.id)" class="delete-btn" aria-label="Delete todo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+          </button>
+        </li>
+      </TransitionGroup>
+
+      <div v-if="filteredTodos.length === 0" class="empty-state">
+        <p>タスクがありません。素晴らしい1日を！</p>
+      </div>
+    </div>
   </div>
 </template>
-
-<style scoped>
-/* 【デザイン部】見た目を整える場所（CSS） */
-.portfolio {
-  font-family: sans-serif;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  color: #e0e0e0;            /* 文字を明るいグレーに */
-  background-color: #121212; /* 背景を深い黒に */
-  min-height: 100vh;         /* 画面の底まで背景色を広げる */
-}
-header {
-  border-bottom: 2px solid #42b883; /* 下線の色 */
-  margin-bottom: 20px;
-}
-h1 {
-  color: #42b883; /* 見出しの色 */
-}
-
-h2 {
-  color: #42b883; /* 見出しの色 */
-}
-.log-item {
-  margin-bottom: 15px;
-  padding: 10px;
-  background: #1e1e1e;       /* ログの背景を少しだけ明るい黒に */
-  border: 1px solid #333;    /* 薄い枠線を入れて立体感を出す */
-  border-radius: 8px;
-}
-.log-date {
-  font-size: 0.8rem;
-  color: #888;
-  font-weight: bold;
-}
-.log-text {
-  margin: 5px 0 0 0;
-}
-</style>
